@@ -8,5 +8,5 @@ data class Account(
     @StringRes val firstName: Int,
     @StringRes val lastName: Int,
     @StringRes val email: Int,
-    @DrawableRes val avatar: Int? // todo: change to non-null after we add the drawable avatars
+    @DrawableRes val avatar: Int
 )
