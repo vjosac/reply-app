@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.material.icons.Icons
@@ -43,11 +44,13 @@ import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.stringResource
 import com.example.replyapp.R
 import com.example.replyapp.data.local.LocalAccountsDataProvider
+import com.example.replyapp.ui.utils.ReplyContentType
 import com.example.replyapp.ui.utils.ReplyNavigationType
 
 @Composable
 fun ReplyHomeScreen(
     navigationType: ReplyNavigationType,
+    contentType: ReplyContentType,
     replyUiState: ReplyUiState,
     onTabPressed: (MailboxType) -> Unit,
     onEmailCardPressed: (Email) -> Unit,
@@ -83,7 +86,8 @@ fun ReplyHomeScreen(
         val navigationDrawerContentDescription = stringResource(R.string.navigation_drawer)
         PermanentNavigationDrawer(
             drawerContent = {
-                PermanentDrawerSheet(Modifier.width(dimensionResource(R.dimen.drawer_width)),
+                PermanentDrawerSheet(
+                    modifier = Modifier.width(dimensionResource(R.dimen.drawer_width)),
                     drawerContainerColor = MaterialTheme.colorScheme.inverseOnSurface
                 ) {
                     NavigationDrawerContent(
@@ -93,6 +97,7 @@ fun ReplyHomeScreen(
                         modifier = Modifier
                             .wrapContentWidth()
                             .fillMaxHeight()
+                            .background(MaterialTheme.colorScheme.inverseOnSurface)
                             .padding(dimensionResource(R.dimen.drawer_padding_content))
                     )
                 }
@@ -101,6 +106,7 @@ fun ReplyHomeScreen(
         ) {
             ReplyAppContent(
                 navigationType = navigationType,
+                contentType = contentType,
                 replyUiState = replyUiState,
                 onTabPressed = onTabPressed,
                 onEmailCardPressed = onEmailCardPressed,
@@ -112,6 +118,7 @@ fun ReplyHomeScreen(
         if (replyUiState.isShowingHomepage) {
             ReplyAppContent(
                 navigationType = navigationType,
+                contentType = contentType,
                 replyUiState = replyUiState,
                 onTabPressed = onTabPressed,
                 onEmailCardPressed = onEmailCardPressed,
@@ -122,7 +129,8 @@ fun ReplyHomeScreen(
             ReplyDetailsScreen(
                 replyUiState = replyUiState,
                 onBackPressed = onDetailScreenBackPressed,
-                modifier = modifier
+                modifier = modifier,
+                isFullScreen = true
             )
         }
     }
@@ -131,6 +139,7 @@ fun ReplyHomeScreen(
 @Composable
 private fun ReplyAppContent(
     navigationType: ReplyNavigationType,
+    contentType: ReplyContentType,
     replyUiState: ReplyUiState,
     onTabPressed: ((MailboxType) -> Unit),
     onEmailCardPressed: (Email) -> Unit,
@@ -153,23 +162,34 @@ private fun ReplyAppContent(
                     .fillMaxSize()
                     .background(MaterialTheme.colorScheme.inverseOnSurface)
             ) {
-                ReplyListOnlyContent(
-                    replyUiState = replyUiState,
-                    onEmailCardPressed = onEmailCardPressed,
-                    modifier = Modifier
-                        .weight(1f)
-                        .padding(horizontal = dimensionResource(R.dimen.email_list_only_horizontal_padding))
-                        .padding(top = dimensionResource(R.dimen.detail_subject_padding_end))
-                )
+                if (contentType == ReplyContentType.LIST_AND_DETAIL) {
+                    ReplyListAndDetailContent(
+                        replyUiState = replyUiState,
+                        onEmailCardPressed = onEmailCardPressed,
+                        modifier = Modifier
+                            .statusBarsPadding()
+                            .weight(1f)
+                    )
+                } else {
+                    ReplyListOnlyContent(
+                        replyUiState = replyUiState,
+                        onEmailCardPressed = onEmailCardPressed,
+                        modifier = Modifier
+                            .weight(1f)
+                            .padding(horizontal = dimensionResource(R.dimen.email_list_only_horizontal_padding))
+                    )
+                }
                 AnimatedVisibility(
                     visible = navigationType == ReplyNavigationType.BOTTOM_NAVIGATION
                 ) {
+                    val bottomNavigationContentDescription = stringResource(R.string.navigation_bottom)
                     ReplyBottomNavigationBar(
                         currentTab = replyUiState.currentMailbox,
                         onTabPressed = onTabPressed,
                         navigationItemContentList = navigationItemContentList,
                         modifier = Modifier
                             .fillMaxWidth()
+                            .testTag(bottomNavigationContentDescription)
                     )
                 }
             }
